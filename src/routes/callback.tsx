@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { AuthShell } from "@/components/auth-shell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { safeRedirect } from "@/lib/session";
+import { takePostLoginRedirect } from "@/lib/session";
 
 export const Route = createFileRoute("/callback")({
   ssr: false,
@@ -29,11 +29,13 @@ function AuthCallbackPage() {
       return;
     }
 
+    const next = takePostLoginRedirect() as "/dashboard";
+
     async function finish() {
       const { data } = await supabase.auth.getSession();
       if (cancelled) return;
       if (data.session) {
-        navigate({ to: safeRedirect("/dashboard"), replace: true });
+        navigate({ to: next, replace: true });
       }
     }
 
@@ -41,7 +43,7 @@ function AuthCallbackPage() {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
       if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
-        navigate({ to: safeRedirect("/dashboard"), replace: true });
+        navigate({ to: next, replace: true });
       }
     });
     const timeout = window.setTimeout(() => {

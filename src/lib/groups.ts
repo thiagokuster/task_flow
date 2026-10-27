@@ -68,22 +68,26 @@ export const groupMembersQuery = (groupId: string) =>
     queryFn: async (): Promise<GroupMember[]> => {
       const { data, error } = await supabase
         .from("group_members")
-        .select("user_id,role,joined_at,profiles(full_name)")
+        .select("user_id,role,joined_at")
         .eq("group_id", groupId)
         .order("joined_at");
       fail(error);
-      return (data ?? []).map((row) => {
-        const profile = row.profiles as { full_name: string } | { full_name: string }[] | null;
-        const full_name = Array.isArray(profile)
-          ? (profile[0]?.full_name ?? "")
-          : (profile?.full_name ?? "");
-        return {
-          user_id: row.user_id,
-          role: row.role === "owner" ? "owner" : "member",
-          joined_at: row.joined_at,
-          full_name,
-        };
-      });
+      const ids = (data ?? []).map((row) => row.user_id);
+      const names = new Map<string, string>();
+      if (ids.length) {
+        const profiles = await supabase.from("group_profiles").select("id,full_name").in("id", ids);
+        if (!profiles.error) {
+          for (const profile of profiles.data ?? []) {
+            names.set(profile.id, profile.full_name);
+          }
+        }
+      }
+      return (data ?? []).map((row) => ({
+        user_id: row.user_id,
+        role: row.role === "owner" ? "owner" : "member",
+        joined_at: row.joined_at,
+        full_name: names.get(row.user_id) ?? "",
+      }));
     },
   });
 
@@ -107,13 +111,21 @@ function errorText(error: unknown): string {
 
 export function inviteErrorMessage(error: unknown, fallback = "Convite inválido."): string {
   const message = errorText(error).toLowerCase();
-  if (message.includes("too many invite attempts")) {
+  if (
+    message.includes("too many invite attempts") ||
+    message.includes("rate_limited") ||
+    message === "rate_limited"
+  ) {
     return "Muitas tentativas de convite. Aguarde alguns minutos.";
   }
-  if (message.includes("invite expired") || message.includes("expirado")) {
+  if (message.includes("invite expired") || message.includes("expired") || message === "expired") {
     return "Este convite expirou. Peça um link novo ao dono do grupo.";
   }
-  if (message.includes("invalid invite") || message.includes("not found")) {
+  if (
+    message.includes("invalid invite") ||
+    message.includes("not found") ||
+    message === "invalid"
+  ) {
     return "Convite inválido.";
   }
   if (message.includes("not group owner")) {
@@ -127,16 +139,23 @@ export async function previewGroup(code: string): Promise<GroupPreview | null> {
   if (error) throw new Error(inviteErrorMessage(error, error.message));
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) return null;
-  if (row.invite_expired) return { id: "", name: "", expired: true };
-  if (!row.id || !row.name) return null;
+  if (row.status === "rate_limited") throw new Error(inviteErrorMessage("rate_limited"));
+  if (row.status === "expired") return { id: "", name: "", expired: true };
+  if (row.status !== "ok" || !row.id || !row.name) return null;
   return { id: row.id, name: row.name, expired: false };
 }
 
 export async function joinGroup(code: string): Promise<string> {
   const { data, error } = await supabase.rpc("join_group", { _code: code.trim() });
   if (error) throw new Error(inviteErrorMessage(error, error.message));
-  if (!data) throw new Error("Convite inválido.");
-  return data;
+  const payload =
+    data && typeof data === "object" && !Array.isArray(data)
+      ? (data as { status?: string; group_id?: string })
+      : null;
+  if (!payload || payload.status !== "ok" || !payload.group_id) {
+    throw new Error(inviteErrorMessage(payload?.status ?? "invalid"));
+  }
+  return payload.group_id;
 }
 
 export async function rotateInviteCode(groupId: string): Promise<{ invite_code: string; invite_expires_at: string }> {

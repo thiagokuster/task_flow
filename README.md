@@ -52,11 +52,17 @@ No dashboard do Supabase, em Authentication → URL Configuration, inclua:
 - Site URL: `http://localhost:3000`
 - Redirect URLs: `http://localhost:3000/callback` (e a URL de produção equivalente)
 
-## Schema do banco (fonte da verdade)
+## Schema do banco
 
-A fonte da verdade do schema, das policies RLS e das funções é **`supabase/migrations/`**. Rode os arquivos no SQL Editor na ordem do nome (timestamp). Sempre aplique o mais recente depois de puxar o repositório.
+Num projeto **novo**, rode no SQL Editor nesta ordem:
 
-A pasta `drizzle/` guarda só o bootstrap inicial do template. Não gere nem aplique migrations novas com Drizzle — isso divergiria do que o app espera.
+1. `drizzle/migrations/0000_migration.sql` — tabelas base (`profiles`, `tasks`, `notifications`, RLS inicial)
+2. `drizzle/migrations/0001_profiles_insert.sql` — INSERT no próprio perfil
+3. Depois todos os arquivos de `supabase/migrations/`, na ordem do timestamp do nome
+
+A fonte da verdade das policies, grupos e RPCs a partir daí é **`supabase/migrations/`**. Sempre aplique o arquivo mais recente depois de puxar o repositório.
+
+Não gere migrations novas com Drizzle. A pasta `drizzle/` é só o bootstrap; mudanças novas entram em `supabase/migrations/`.
 
 ## CI
 

@@ -17,12 +17,18 @@ import {
   GENERIC_AUTH_ERROR,
   friendlyAuthError,
 } from "@/lib/validation";
-import { clientThrottle, markSessionPersistence, safeRedirect } from "@/lib/session";
+import {
+  clientThrottle,
+  markSessionPersistence,
+  rememberPostLoginRedirect,
+  safeRedirect,
+} from "@/lib/session";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({
     mode: z.enum(["signin", "signup"]).catch("signin"),
     redirect: z.string().optional(),
+    reauth: z.string().optional(),
   }),
   head: () => ({
     meta: [
@@ -115,7 +121,7 @@ function PasswordField({
 }
 
 function AuthPage() {
-  const { mode, redirect } = Route.useSearch();
+  const { mode, redirect, reauth } = Route.useSearch();
   const navigate = useNavigate();
   const [f, setF] = useState<FormFields>({
     fullName: "",
@@ -233,11 +239,13 @@ function AuthPage() {
         return;
       }
       sessionStorage.setItem("tf_post_oauth", "1");
+      rememberPostLoginRedirect(redirect);
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/callback`,
           skipBrowserRedirect: true,
+          ...(reauth ? { queryParams: { prompt: "login" } } : {}),
         },
       });
       if (error || !data.url) {
@@ -267,8 +275,19 @@ function AuthPage() {
   return (
     <AuthShell
       title={signup ? "Criar conta" : "Entrar"}
-      subtitle={signup ? "Comece a organizar suas tarefas." : "Bem-vindo de volta."}
+      subtitle={
+        reauth
+          ? "Entre de novo para confirmar a exclusão da conta."
+          : signup
+            ? "Comece a organizar suas tarefas."
+            : "Bem-vindo de volta."
+      }
     >
+      {reauth ? (
+        <p className="mb-6 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">
+          Por segurança, precisamos que você autentique outra vez antes de apagar a conta.
+        </p>
+      ) : null}
       {authStatus && !authStatus.reachable ? (
         <p className="mb-6 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {AUTH_UNREACHABLE_ERROR}

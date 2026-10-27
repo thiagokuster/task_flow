@@ -53,6 +53,40 @@ export function safeRedirect(path: unknown, fallback = "/dashboard"): string {
   return path;
 }
 
+const POST_LOGIN_REDIRECT_KEY = "tf_post_login_redirect";
+
+export function rememberPostLoginRedirect(path: unknown) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, safeRedirect(path));
+}
+
+export function takePostLoginRedirect(): string {
+  if (typeof window === "undefined") return "/dashboard";
+  const raw = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY);
+  sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+  return safeRedirect(raw);
+}
+
+export const REAUTH_MAX_AGE_SEC = 600;
+export const REAUTH_REQUIRED_ERROR =
+  "Por segurança, entre de novo na sua conta e depois confirme a exclusão.";
+
+type AuthMethod = { method?: string; timestamp?: number };
+
+/** Latest password/OAuth authentication time from AMR — not the JWT refresh `iat`. */
+export function latestAuthAt(claims: { amr?: AuthMethod[] | null }): number {
+  const stamps = (claims.amr ?? [])
+    .map((entry) => entry.timestamp)
+    .filter((value): value is number => typeof value === "number" && value > 0);
+  if (stamps.length === 0) return 0;
+  return Math.max(...stamps);
+}
+
+export function needsReauth(claims: { amr?: AuthMethod[] | null }, nowSec = Date.now() / 1000): boolean {
+  const at = latestAuthAt(claims);
+  return !at || nowSec - at > REAUTH_MAX_AGE_SEC;
+}
+
 // Simple client-side cooldown to discourage rapid repeated attempts.
 // Real enforcement is done server-side by the authentication service's rate limits.
 const attempts = new Map<string, number[]>();

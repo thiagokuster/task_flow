@@ -29,4 +29,23 @@ describe("planOwnedGroupHandoff", () => {
     expect(plan.deleteGroupIds).toEqual([]);
     expect(plan.transfers).toEqual([]);
   });
+
+  it("hands off a group the user created even after leaving", () => {
+    const plan = planOwnedGroupHandoff(
+      "ex-owner",
+      [
+        { group_id: "g1", user_id: "a", role: "member", joined_at: "2026-01-15T00:00:00Z" },
+        { group_id: "g1", user_id: "b", role: "member", joined_at: "2026-02-01T00:00:00Z" },
+      ],
+      ["g1"],
+    );
+    expect(plan.deleteGroupIds).toEqual([]);
+    expect(plan.transfers).toEqual([{ groupId: "g1", successorId: "a" }]);
+  });
+
+  it("deletes an empty group still pointing at the user as created_by", () => {
+    const plan = planOwnedGroupHandoff("ex-owner", [], ["g1"]);
+    expect(plan.deleteGroupIds).toEqual(["g1"]);
+    expect(plan.transfers).toEqual([]);
+  });
 });

@@ -73,6 +73,17 @@ function Account() {
     try {
       const result = await deleteMyAccount({ data: { confirm: "EXCLUIR" } });
       if (!result.ok) {
+        if ("needsReauth" in result && result.needsReauth) {
+          setOpen(false);
+          qc.clear();
+          await supabase.auth.signOut();
+          toast.message(result.error);
+          navigate({
+            to: "/auth",
+            search: { mode: "signin", redirect: "/account", reauth: "1" },
+          });
+          return;
+        }
         toast.error(result.error);
         return;
       }
@@ -138,9 +149,8 @@ function Account() {
             <div>
               <h2 className="text-lg font-semibold">Excluir conta</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Apaga a conta e os dados ligados a ela. Grupos com outros membros passam para quem
-                entrou primeiro; grupos só seus são excluídos. Se a sessão for antiga, pediremos
-                que entre de novo antes de concluir.
+                Apaga a conta e os dados pessoais. Tarefas de grupo dos colegas permanecem com o
+                novo dono. Se o login não for recente, vamos pedir que você entre de novo.
               </p>
             </div>
             <AlertDialog

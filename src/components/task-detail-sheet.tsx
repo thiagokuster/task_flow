@@ -73,7 +73,7 @@ export function TaskDetailSheet({
       await createComment(task.id, parsed.data.body);
       setBody("");
       await qc.invalidateQueries({ queryKey: ["task-comments", task.id] });
-      await qc.invalidateQueries({ queryKey: ["tasks"] });
+      await qc.invalidateQueries({ queryKey: ["comment-counts"] });
     } catch {
       toast.error("Não foi possível comentar.");
     } finally {
@@ -85,7 +85,7 @@ export function TaskDetailSheet({
     try {
       await deleteComment(id);
       await qc.invalidateQueries({ queryKey: ["task-comments"] });
-      await qc.invalidateQueries({ queryKey: ["tasks"] });
+      await qc.invalidateQueries({ queryKey: ["comment-counts"] });
     } catch {
       toast.error("Não foi possível excluir o comentário.");
     }

@@ -1,5 +1,6 @@
 import "./lib/error-capture";
 
+import { applyScriptNonces, contentSecurityPolicy, createCspNonce } from "./lib/csp";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
@@ -44,34 +45,33 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-const CSP = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https:",
-  "connect-src 'self' https: wss:",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-].join("; ");
+function withCommonSecurityHeaders(headers: Headers) {
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+}
 
 // Security headers applied to every response in production builds.
-function withSecurityHeaders(response: Response): Response {
+async function withSecurityHeaders(response: Response): Promise<Response> {
   if (!import.meta.env.PROD) return response;
-  try {
-    const headers = new Headers(response.headers);
-    headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-    headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-    if ((headers.get("content-type") ?? "").includes("text/html")) {
-      headers.set("Content-Security-Policy", CSP);
-    }
-    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
-  } catch {
-    return response;
+  const headers = new Headers(response.headers);
+  withCommonSecurityHeaders(headers);
+  if (!(headers.get("content-type") ?? "").includes("text/html")) {
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
   }
+  const nonce = createCspNonce();
+  headers.set("Content-Security-Policy", contentSecurityPolicy(nonce));
+  const html = applyScriptNonces(await response.text(), nonce);
+  return new Response(html, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 export default {
@@ -82,10 +82,12 @@ export default {
       return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
-      return new Response(renderErrorPage(), {
-        status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
-      });
+      return withSecurityHeaders(
+        new Response(renderErrorPage(), {
+          status: 500,
+          headers: { "content-type": "text/html; charset=utf-8" },
+        }),
+      );
     }
   },
 };

@@ -11,7 +11,14 @@ import { UserAvatar } from "@/components/user-avatar";
 import { Button } from "@/components/ui/button";
 import { groupMembersQuery, groupQuery, leaveGroup, rotateInviteCode } from "@/lib/groups";
 import { matchesScope, TASK_SCOPES, type TaskScope } from "@/lib/task-filters";
-import { deleteTask, profileQuery, tasksQuery, updateTask } from "@/lib/tasks";
+import {
+  commentCountsQuery,
+  deleteTask,
+  profileQuery,
+  tasksQuery,
+  updateTask,
+  withCommentCounts,
+} from "@/lib/tasks";
 import type { TaskStatus } from "@/lib/validation";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
@@ -30,7 +37,12 @@ function GroupPage() {
   const navigate = useNavigate();
   const { data: group, isLoading: loadingGroup } = useQuery(groupQuery(groupId));
   const { data: members = [] } = useQuery(groupMembersQuery(groupId));
-  const { data: allTasks = [] } = useQuery(tasksQuery);
+  const { data: rawTasks = [] } = useQuery(tasksQuery);
+  const { data: commentCounts } = useQuery(commentCountsQuery);
+  const allTasks = useMemo(
+    () => withCommentCounts(rawTasks, commentCounts),
+    [rawTasks, commentCounts],
+  );
   const { data: profileData } = useQuery(profileQuery);
   const [scope, setScope] = useState<TaskScope>("group_all");
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
@@ -96,7 +108,10 @@ function GroupPage() {
 
   async function leave() {
     if (!userId) return;
-    if (!confirm("Sair deste grupo?")) return;
+    const leaveMessage = isOwner
+      ? "Sair deste grupo? Se houver outros membros, quem entrou primeiro vira dono. Se você estiver sozinho, o grupo é excluído."
+      : "Sair deste grupo?";
+    if (!confirm(leaveMessage)) return;
     try {
       await leaveGroup(groupId, userId);
       await qc.invalidateQueries({ queryKey: ["groups"] });

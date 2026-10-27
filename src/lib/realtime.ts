@@ -21,7 +21,7 @@ export function useRealtimeSync() {
         { event: "*", schema: "public", table: "task_comments" },
         () => {
           void qc.invalidateQueries({ queryKey: ["task-comments"] });
-          void qc.invalidateQueries({ queryKey: ["tasks"] });
+          void qc.invalidateQueries({ queryKey: ["comment-counts"] });
         },
       )
       .on(

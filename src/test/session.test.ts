@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { clientThrottle, safeRedirect } from "@/lib/session";
+import { clientThrottle, latestAuthAt, needsReauth, safeRedirect } from "@/lib/session";
 
 describe("safeRedirect", () => {
   it("allows same-origin relative paths", () => {
@@ -18,6 +18,19 @@ describe("safeRedirect", () => {
   it("falls back for non-strings", () => {
     expect(safeRedirect(undefined)).toBe("/dashboard");
     expect(safeRedirect(null)).toBe("/dashboard");
+  });
+});
+
+describe("needsReauth", () => {
+  it("requires AMR timestamps, not a refreshed JWT iat", () => {
+    expect(latestAuthAt({})).toBe(0);
+    expect(needsReauth({}, 1_700_000_000)).toBe(true);
+    expect(needsReauth({ amr: [{ method: "password", timestamp: 1_700_000_000 }] }, 1_700_000_100)).toBe(
+      false,
+    );
+    expect(needsReauth({ amr: [{ method: "password", timestamp: 1_700_000_000 }] }, 1_700_001_000)).toBe(
+      true,
+    );
   });
 });
 

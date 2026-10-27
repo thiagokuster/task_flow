@@ -476,24 +476,35 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      group_profiles: {
+        Row: {
+          full_name: string;
+          id: string;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       can_access_task: { Args: { _task_id: string }; Returns: boolean };
       is_group_member: { Args: { _group_id: string }; Returns: boolean };
       is_group_owner: { Args: { _group_id: string }; Returns: boolean };
       create_group: { Args: { _name: string }; Returns: string };
-      join_group: { Args: { _code: string }; Returns: string };
+      join_group: { Args: { _code: string }; Returns: Json };
       log_security_event: { Args: { _event: string }; Returns: undefined };
+      prepare_account_deletion: { Args: never; Returns: undefined };
       preview_group: {
         Args: { _code: string };
-        Returns: { id: string | null; name: string | null; invite_expired: boolean }[];
+        Returns: { id: string | null; name: string | null; status: string }[];
       };
       rotate_invite_code: {
         Args: { _group_id: string };
         Returns: { invite_code: string; invite_expires_at: string }[];
       };
       refresh_my_notifications: { Args: never; Returns: number };
+      task_comment_counts: {
+        Args: never;
+        Returns: { comment_count: number; task_id: string }[];
+      };
     };
     Enums: {
       [_ in never]: never;

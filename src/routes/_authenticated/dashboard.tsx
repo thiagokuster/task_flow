@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Check, Clock, ListTodo, Play, Plus, Sparkles } from "lucide-react";
 import { FilterPills } from "@/components/filter-pills";
@@ -13,11 +13,13 @@ import { dueAtFromDateInput, isDateInputPast, PAST_DUE_ERROR, todayDateInput } f
 import { dashboardSubtitle, displayFirstName } from "@/lib/greeting";
 import { matchesScope, TASK_SCOPES, type TaskScope } from "@/lib/task-filters";
 import {
+  commentCountsQuery,
   createTask,
   deleteTask,
   profileQuery,
   tasksQuery,
   updateTask,
+  withCommentCounts,
   type Task,
 } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
@@ -49,7 +51,12 @@ function matchesFilter(task: Task, filter: ListFilter): boolean {
 
 function Dashboard() {
   const qc = useQueryClient();
-  const { data: tasks = [], isLoading, isError } = useQuery(tasksQuery);
+  const { data: rawTasks = [], isLoading, isError } = useQuery(tasksQuery);
+  const { data: commentCounts } = useQuery(commentCountsQuery);
+  const tasks = useMemo(
+    () => withCommentCounts(rawTasks, commentCounts),
+    [rawTasks, commentCounts],
+  );
   const { data: profileData } = useQuery(profileQuery);
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");

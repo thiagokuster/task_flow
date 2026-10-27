@@ -31,7 +31,7 @@ export const signUpSchema = z
     email: emailSchema,
     password: passwordSchema,
     confirm: z.string(),
-    terms: z.literal(true, { errorMap: () => ({ message: "Aceite os termos para continuar." }) }),
+    terms: z.literal(true, { error: "Aceite os termos para continuar." }),
   })
   .refine((d) => d.password === d.confirm, {
     message: "As senhas não coincidem.",
@@ -70,7 +70,7 @@ export const PRIORITY_WEIGHT: Record<TaskPriority, number> = {
 function dueAtNotPast(value: string | null | undefined, ctx: z.RefinementCtx) {
   if (!value) return;
   if (isDueAtPast(value)) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: PAST_DUE_ERROR });
+    ctx.addIssue({ code: "custom", message: PAST_DUE_ERROR });
   }
 }
 

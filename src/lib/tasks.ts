@@ -49,15 +49,18 @@ function parseTaskPatch(input: Partial<TaskInput>) {
   return parsed.data;
 }
 
-async function loadCommentCounts(): Promise<Map<string, number>> {
-  const { data, error } = await supabase.from("task_comments").select("task_id");
-  if (error || !data) return new Map();
-  const counts = new Map<string, number>();
-  for (const row of data) {
-    counts.set(row.task_id, (counts.get(row.task_id) ?? 0) + 1);
-  }
-  return counts;
-}
+export const commentCountsQuery = queryOptions({
+  queryKey: ["comment-counts"],
+  queryFn: async (): Promise<Map<string, number>> => {
+    const { data, error } = await supabase.rpc("task_comment_counts");
+    if (error || !data) return new Map();
+    const counts = new Map<string, number>();
+    for (const row of data) {
+      counts.set(row.task_id, Number(row.comment_count));
+    }
+    return counts;
+  },
+});
 
 export const tasksQuery = queryOptions({
   queryKey: ["tasks"],
@@ -70,7 +73,6 @@ export const tasksQuery = queryOptions({
       .order("created_at", { ascending: false })
       .limit(2000);
     fail(error);
-    const commentCounts = await loadCommentCounts();
     return (data ?? []).map((row) => {
       const { task_tags, assignee, ...t } = row as typeof row & {
         assignee: { full_name: string } | { full_name: string }[] | null;
@@ -80,11 +82,16 @@ export const tasksQuery = queryOptions({
         ...(t as Omit<Task, "tag_ids" | "assignee_name" | "comment_count">),
         tag_ids: (task_tags ?? []).map((x) => x.tag_id),
         assignee_name: profile?.full_name ?? null,
-        comment_count: commentCounts.get(t.id) ?? 0,
+        comment_count: 0,
       };
     });
   },
 });
+
+export function withCommentCounts(tasks: Task[], counts: Map<string, number> | undefined): Task[] {
+  if (!counts?.size) return tasks;
+  return tasks.map((task) => ({ ...task, comment_count: counts.get(task.id) ?? 0 }));
+}
 
 export const projectsQuery = queryOptions({
   queryKey: ["projects"],
