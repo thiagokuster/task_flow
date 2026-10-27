@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { joinGroup, previewGroup } from "@/lib/groups";
+import { inviteErrorMessage, joinGroup, previewGroup } from "@/lib/groups";
 
 export const Route = createFileRoute("/_authenticated/join/$codigo")({
   head: () => ({
@@ -33,8 +33,8 @@ function JoinGroupPage() {
       await qc.invalidateQueries({ queryKey: ["groups"] });
       toast.success("Você entrou no grupo.");
       navigate({ to: "/groups/$groupId", params: { groupId: id } });
-    } catch {
-      toast.error("Convite inválido ou expirado.");
+    } catch (error) {
+      toast.error(inviteErrorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -47,7 +47,12 @@ function JoinGroupPage() {
       </span>
       {preview.isLoading ? (
         <p className="text-muted-foreground">Verificando convite…</p>
-      ) : preview.data ? (
+      ) : preview.isError ? (
+        <>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Não foi possível verificar</h1>
+          <p className="text-muted-foreground">{inviteErrorMessage(preview.error)}</p>
+        </>
+      ) : preview.data && !preview.data.expired ? (
         <>
           <h1 className="font-display text-3xl font-bold tracking-tight">
             Entrar em {preview.data.name}?
@@ -61,8 +66,14 @@ function JoinGroupPage() {
         </>
       ) : (
         <>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Convite inválido</h1>
-          <p className="text-muted-foreground">Esse código não corresponde a um grupo ativo.</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight">
+            {preview.data?.expired ? "Convite expirado" : "Convite inválido"}
+          </h1>
+          <p className="text-muted-foreground">
+            {preview.data?.expired
+              ? "Peça um link novo ao dono do grupo."
+              : "Esse código não corresponde a um grupo ativo."}
+          </p>
         </>
       )}
       <Button variant="ghost" asChild>

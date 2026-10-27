@@ -13,6 +13,12 @@ export function isDateInputPast(value: string, now = new Date()): boolean {
   return trimmed < todayDateInput(now);
 }
 
+/** True when a stored ISO due_at falls on a local calendar day before today. */
+export function isDueAtPast(iso: string | null | undefined, now = new Date()): boolean {
+  if (!iso) return false;
+  return isDateInputPast(dateInputFromDueAt(iso), now);
+}
+
 /** Convert a `yyyy-MM-dd` input to an end-of-local-day ISO timestamp. */
 export function dueAtFromDateInput(value: string): string | null {
   const trimmed = value.trim();

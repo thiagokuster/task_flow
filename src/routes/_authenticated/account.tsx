@@ -138,8 +138,9 @@ function Account() {
             <div>
               <h2 className="text-lg font-semibold">Excluir conta</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Apaga a conta e os dados ligados a ela. Se a sessão for antiga, pediremos que entre
-                de novo antes de concluir.
+                Apaga a conta e os dados ligados a ela. Grupos com outros membros passam para quem
+                entrou primeiro; grupos só seus são excluídos. Se a sessão for antiga, pediremos
+                que entre de novo antes de concluir.
               </p>
             </div>
             <AlertDialog

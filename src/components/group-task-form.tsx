@@ -68,8 +68,8 @@ export function GroupTaskForm({
       setDue("");
       setAssigneeId(currentUserId);
       onCreated();
-    } catch {
-      toast.error("Não foi possível criar a tarefa.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível criar a tarefa.");
     } finally {
       setBusy(false);
     }

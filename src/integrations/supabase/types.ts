@@ -79,6 +79,7 @@ export type Database = {
           created_by: string;
           id: string;
           invite_code: string;
+          invite_expires_at: string;
           name: string;
           updated_at: string;
         };
@@ -87,6 +88,7 @@ export type Database = {
           created_by?: string;
           id?: string;
           invite_code?: string;
+          invite_expires_at?: string;
           name: string;
           updated_at?: string;
         };
@@ -95,6 +97,7 @@ export type Database = {
           created_by?: string;
           id?: string;
           invite_code?: string;
+          invite_expires_at?: string;
           name?: string;
           updated_at?: string;
         };
@@ -477,12 +480,19 @@ export type Database = {
     };
     Functions: {
       can_access_task: { Args: { _task_id: string }; Returns: boolean };
-      is_group_member: { Args: { _group_id: string; _user_id?: string }; Returns: boolean };
-      is_group_owner: { Args: { _group_id: string; _user_id?: string }; Returns: boolean };
+      is_group_member: { Args: { _group_id: string }; Returns: boolean };
+      is_group_owner: { Args: { _group_id: string }; Returns: boolean };
       create_group: { Args: { _name: string }; Returns: string };
       join_group: { Args: { _code: string }; Returns: string };
       log_security_event: { Args: { _event: string }; Returns: undefined };
-      preview_group: { Args: { _code: string }; Returns: { id: string; name: string }[] };
+      preview_group: {
+        Args: { _code: string };
+        Returns: { id: string | null; name: string | null; invite_expired: boolean }[];
+      };
+      rotate_invite_code: {
+        Args: { _group_id: string };
+        Returns: { invite_code: string; invite_expires_at: string }[];
+      };
       refresh_my_notifications: { Args: never; Returns: number };
     };
     Enums: {

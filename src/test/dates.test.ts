@@ -5,6 +5,7 @@ import {
   dueAtFromDateInput,
   formatDueDate,
   isDateInputPast,
+  isDueAtPast,
   todayDateInput,
 } from "@/lib/dates";
 
@@ -34,5 +35,15 @@ describe("due date helpers", () => {
     expect(isDateInputPast("2026-10-26", now)).toBe(false);
     expect(isDateInputPast("2026-10-27", now)).toBe(false);
     expect(isDateInputPast("", now)).toBe(false);
+  });
+});
+
+describe("isDueAtPast", () => {
+  it("treats a stored yesterday timestamp as past", () => {
+    const now = new Date(2026, 9, 26, 15, 0, 0);
+    const yesterday = dueAtFromDateInput("2026-10-25");
+    expect(yesterday).toBeTruthy();
+    expect(isDueAtPast(yesterday, now)).toBe(true);
+    expect(isDueAtPast(dueAtFromDateInput("2026-10-26"), now)).toBe(false);
   });
 });

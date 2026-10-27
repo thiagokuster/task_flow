@@ -2,14 +2,14 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Copy, Link2 } from "lucide-react";
+import { Copy, Link2, RefreshCw } from "lucide-react";
 import { FilterPills } from "@/components/filter-pills";
 import { GroupTaskForm } from "@/components/group-task-form";
 import { TaskDetailSheet } from "@/components/task-detail-sheet";
 import { TaskRow } from "@/components/task-row";
 import { UserAvatar } from "@/components/user-avatar";
 import { Button } from "@/components/ui/button";
-import { groupMembersQuery, groupQuery, leaveGroup } from "@/lib/groups";
+import { groupMembersQuery, groupQuery, leaveGroup, rotateInviteCode } from "@/lib/groups";
 import { matchesScope, TASK_SCOPES, type TaskScope } from "@/lib/task-filters";
 import { deleteTask, profileQuery, tasksQuery, updateTask } from "@/lib/tasks";
 import type { TaskStatus } from "@/lib/validation";
@@ -35,6 +35,7 @@ function GroupPage() {
   const [scope, setScope] = useState<TaskScope>("group_all");
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const userId = profileData?.user.id ?? "";
+  const isOwner = members.some((member) => member.user_id === userId && member.role === "owner");
   const inviteUrl =
     typeof window !== "undefined" && group
       ? `${window.location.origin}/join/${group.invite_code}`
@@ -60,6 +61,17 @@ function GroupPage() {
       toast.success("Link de convite copiado.");
     } catch {
       toast.error("Não foi possível copiar o link.");
+    }
+  }
+
+  async function rotateInvite() {
+    try {
+      await rotateInviteCode(groupId);
+      await qc.invalidateQueries({ queryKey: ["groups"] });
+      await qc.invalidateQueries({ queryKey: ["groups", groupId] });
+      toast.success("Novo link de convite gerado. O anterior deixa de valer.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível renovar o convite.");
     }
   }
 
@@ -132,7 +144,13 @@ function GroupPage() {
           </span>
           <div>
             <h2 className="font-semibold">Link de convite</h2>
-            <p className="text-sm text-muted-foreground">Quem tiver o link entra no grupo.</p>
+            <p className="text-sm text-muted-foreground">
+              Expira em{" "}
+              {new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(
+                new Date(group.invite_expires_at),
+              )}
+              . Só o dono pode renovar.
+            </p>
           </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -143,6 +161,12 @@ function GroupPage() {
             <Copy />
             Copiar
           </Button>
+          {isOwner ? (
+            <Button type="button" variant="outline" onClick={rotateInvite}>
+              <RefreshCw />
+              Renovar
+            </Button>
+          ) : null}
         </div>
       </section>
 
@@ -194,6 +218,8 @@ function GroupPage() {
               <TaskRow
                 key={t.id}
                 task={t}
+                canEdit={t.created_by === userId || t.assignee_id === userId || isOwner}
+                canDelete={t.created_by === userId || isOwner}
                 onToggle={() => setStatus(t.id, t.status === "done" ? "pending" : "done")}
                 onStatus={(status) => setStatus(t.id, status)}
                 onRemove={() => remove(t.id)}
@@ -203,7 +229,13 @@ function GroupPage() {
           </ul>
         )}
       </section>
-      <TaskDetailSheet task={openTask} onClose={() => setOpenTaskId(null)} />
+      <TaskDetailSheet
+        task={openTask}
+        canEdit={
+          !!openTask && (openTask.created_by === userId || openTask.assignee_id === userId || isOwner)
+        }
+        onClose={() => setOpenTaskId(null)}
+      />
     </div>
   );
 }

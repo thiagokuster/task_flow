@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isDueAtPast, PAST_DUE_ERROR } from "@/lib/dates";
 
 // Shared schemas: used in forms (client) and mirrored by database constraints (server).
 export const emailSchema = z
@@ -66,7 +67,14 @@ export const PRIORITY_WEIGHT: Record<TaskPriority, number> = {
   urgent: 3,
 };
 
-export const taskSchema = z.object({
+function dueAtNotPast(value: string | null | undefined, ctx: z.RefinementCtx) {
+  if (!value) return;
+  if (isDueAtPast(value)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: PAST_DUE_ERROR });
+  }
+}
+
+const taskFields = z.object({
   title: z.string().trim().min(1, "Informe um título.").max(200, "Máximo de 200 caracteres."),
   description: z.string().max(5000, "Máximo de 5000 caracteres."),
   priority: z.enum(TASK_PRIORITIES),
@@ -78,7 +86,14 @@ export const taskSchema = z.object({
   assignee_id: z.string().uuid().nullable(),
   tag_ids: z.array(z.string().uuid()).max(20),
 });
+
+export const taskSchema = taskFields.superRefine((data, ctx) => dueAtNotPast(data.due_at, ctx));
 export type TaskInput = z.infer<typeof taskSchema>;
+
+export const taskPatchSchema = taskFields.partial().superRefine((data, ctx) => {
+  if (data.due_at === undefined) return;
+  dueAtNotPast(data.due_at, ctx);
+});
 
 export const commentSchema = z.object({
   body: z.string().trim().min(1, "Escreva um comentário.").max(2000, "Máximo de 2000 caracteres."),

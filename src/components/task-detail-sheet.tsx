@@ -29,9 +29,11 @@ import { commentSchema, STATUS_LABEL } from "@/lib/validation";
 export function TaskDetailSheet({
   task,
   onClose,
+  canEdit = true,
 }: {
   task: Task | null;
   onClose: () => void;
+  canEdit?: boolean;
 }) {
   const qc = useQueryClient();
   const taskId = task?.id ?? "";
@@ -114,6 +116,7 @@ export function TaskDetailSheet({
                 className="mt-1.5"
                 min={todayDateInput()}
                 value={dateInputFromDueAt(task.due_at)}
+                disabled={!canEdit}
                 onChange={(e) => void saveDue(e.target.value)}
               />
             </div>

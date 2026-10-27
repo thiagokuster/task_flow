@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { TaskInput, TaskPriority, TaskStatus } from "./validation";
+import { PAST_DUE_ERROR } from "./dates";
+import { taskPatchSchema, taskSchema, type TaskInput, type TaskPriority, type TaskStatus } from "./validation";
 
 // All reads/writes go through the user's session; Row-Level Security in the
 // database is what actually enforces ownership. user_id is never sent from the client.
@@ -28,7 +29,24 @@ export type Task = {
 export type Named = { id: string; name: string; color?: string };
 
 function fail(error: { message: string } | null) {
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(mapTaskError(error.message));
+}
+
+function mapTaskError(message: string): string {
+  if (message.toLowerCase().includes("due date cannot be in the past")) return PAST_DUE_ERROR;
+  return message;
+}
+
+function parseTaskInput(input: TaskInput): TaskInput {
+  const parsed = taskSchema.safeParse(input);
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Dados inválidos.");
+  return parsed.data;
+}
+
+function parseTaskPatch(input: Partial<TaskInput>) {
+  const parsed = taskPatchSchema.safeParse(input);
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Dados inválidos.");
+  return parsed.data;
 }
 
 async function loadCommentCounts(): Promise<Map<string, number>> {
@@ -176,7 +194,8 @@ async function setTags(taskId: string, tagIds: string[]) {
 }
 
 export async function createTask(input: TaskInput) {
-  const { tag_ids, ...rest } = input;
+  const parsed = parseTaskInput(input);
+  const { tag_ids, ...rest } = parsed;
   const { data, error } = await supabase
     .from("tasks")
     .insert(rest as never)
@@ -188,9 +207,10 @@ export async function createTask(input: TaskInput) {
 }
 
 export async function updateTask(id: string, input: Partial<TaskInput>) {
-  const { tag_ids, ...rest } = input;
+  const parsed = parseTaskPatch(input);
+  const { tag_ids, ...rest } = parsed;
   if (Object.keys(rest).length) {
-    const { error } = await supabase.from("tasks").update(rest).eq("id", id);
+    const { error } = await supabase.from("tasks").update(rest as never).eq("id", id);
     fail(error);
   }
   if (tag_ids) await setTags(id, tag_ids);

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CallbackRouteImport } from './routes/callback'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
@@ -34,6 +35,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CallbackRoute = CallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -87,6 +93,7 @@ const AuthenticatedJoinCodigoRoute = AuthenticatedJoinCodigoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/callback': typeof CallbackRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/account': typeof AuthenticatedAccountRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/callback': typeof CallbackRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/account': typeof AuthenticatedAccountRoute
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/callback': typeof CallbackRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/callback'
     | '/privacy'
     | '/terms'
     | '/account'
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/callback'
     | '/privacy'
     | '/terms'
     | '/account'
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/callback'
     | '/privacy'
     | '/terms'
     | '/_authenticated/account'
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CallbackRoute: typeof CallbackRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
 }
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/callback': {
+      id: '/callback'
+      path: '/callback'
+      fullPath: '/callback'
+      preLoaderRoute: typeof CallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -299,6 +319,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  CallbackRoute: CallbackRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
 }

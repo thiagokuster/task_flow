@@ -25,5 +25,6 @@ describe("App routing", () => {
     expect(router.matchRoutes("/join/ABC12345").at(-1)?.routeId).toBe(
       "/_authenticated/join/$codigo",
     );
+    expect(router.matchRoutes("/callback").at(-1)?.routeId).toBe("/callback");
   });
 });

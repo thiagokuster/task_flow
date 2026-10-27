@@ -28,12 +28,16 @@ export function TaskRow({
   onStatus,
   onRemove,
   onOpen,
+  canEdit = true,
+  canDelete = true,
 }: {
   task: Task;
   onToggle: () => void;
   onStatus: (status: TaskStatus) => void;
   onRemove: () => void;
   onOpen: () => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }) {
   const due = formatDue(task);
   const meta = [due?.label, task.assignee_name ? `Para ${task.assignee_name}` : null]
@@ -46,6 +50,7 @@ export function TaskRow({
         aria-label={`Concluir ${task.title}`}
         checked={task.status === "done"}
         onCheckedChange={() => onToggle()}
+        disabled={!canEdit}
         className="size-5"
       />
       {task.assignee_name ? (
@@ -91,25 +96,29 @@ export function TaskRow({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={onOpen}>Abrir detalhes</DropdownMenuItem>
-          {task.status !== "pending" ? (
+          {canEdit && task.status !== "pending" ? (
             <DropdownMenuItem onClick={() => onStatus("pending")}>
               Marcar como pendente
             </DropdownMenuItem>
           ) : null}
-          {task.status !== "in_progress" ? (
+          {canEdit && task.status !== "in_progress" ? (
             <DropdownMenuItem onClick={() => onStatus("in_progress")}>
               Marcar em andamento
             </DropdownMenuItem>
           ) : null}
-          {task.status !== "done" ? (
+          {canEdit && task.status !== "done" ? (
             <DropdownMenuItem onClick={() => onStatus("done")}>
               Marcar como concluída
             </DropdownMenuItem>
           ) : null}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={onRemove}>
-            Excluir
-          </DropdownMenuItem>
+          {canDelete ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={onRemove}>
+                Excluir
+              </DropdownMenuItem>
+            </>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </li>

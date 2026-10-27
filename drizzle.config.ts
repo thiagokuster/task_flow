@@ -1,3 +1,4 @@
+// Historical bootstrap only. Live schema lives in supabase/migrations/.
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
