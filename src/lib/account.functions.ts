@@ -82,7 +82,7 @@ export const exportMyData = createServerFn({ method: "POST" })
  */
 export const deleteMyAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ confirm: z.literal("EXCLUIR") }).parse(d))
+  .validator((d) => z.object({ confirm: z.literal("EXCLUIR") }).parse(d))
   .handler(async ({ context }) => {
     if (needsReauth(context.claims as { amr?: { timestamp?: number }[] })) {
       return { ok: false as const, error: REAUTH_REQUIRED_ERROR, needsReauth: true as const };

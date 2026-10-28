@@ -54,13 +54,22 @@ No dashboard do Supabase, em Authentication → URL Configuration, inclua:
 
 ## Schema do banco
 
-Num projeto **novo**, rode no SQL Editor nesta ordem:
+Num projeto **novo**, rode no SQL Editor **cada arquivo**, nesta ordem, sem pular:
 
 1. `drizzle/migrations/0000_migration.sql` — tabelas base (`profiles`, `tasks`, `notifications`, RLS inicial)
 2. `drizzle/migrations/0001_profiles_insert.sql` — INSERT no próprio perfil
-3. Depois todos os arquivos de `supabase/migrations/`, na ordem do timestamp do nome
+3. `supabase/migrations/20261022180000_shared_groups.sql`
+4. `supabase/migrations/20261026140000_group_task_extras.sql`
+5. `supabase/migrations/20261026150000_fix_group_invite_code.sql`
+6. `supabase/migrations/20261027180000_harden_security_lgpd.sql`
+7. `supabase/migrations/20261027190000_group_owner_handoff.sql`
+8. `supabase/migrations/20261027200000_account_invite_counts.sql`
+9. `supabase/migrations/20261027210000_fix_deletion_csp_profiles.sql`
+10. `supabase/migrations/20261028160000_group_task_personal_fields.sql`
+11. `supabase/migrations/20261028170000_clean_group_extras_indexes.sql`
+12. `supabase/migrations/20261028180000_group_profiles_related.sql`
 
-A fonte da verdade das policies, grupos e RPCs a partir daí é **`supabase/migrations/`**. Sempre aplique o arquivo mais recente depois de puxar o repositório.
+A fonte da verdade das policies, grupos e RPCs a partir daí é **`supabase/migrations/`**. Depois de puxar o repositório, aplique só os arquivos cujo timestamp ainda não rodou no banco, **na ordem do nome**. Não rode só o mais novo num banco incompleto: `20261028160000` sozinha não faz a exclusão de conta funcionar, porque o `force_owner` de `20261027210000` precisa existir antes.
 
 Não gere migrations novas com Drizzle. A pasta `drizzle/` é só o bootstrap; mudanças novas entram em `supabase/migrations/`.
 
