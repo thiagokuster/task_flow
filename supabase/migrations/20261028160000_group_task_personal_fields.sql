@@ -6,8 +6,10 @@
 -- not expose SET/set_config to clients; only a role that can run arbitrary SQL
 -- could flip it and skip force_owner.
 --
--- Recreate the deletion helpers here so this file is safe to run even if
--- 20261027210000 was skipped (the new trigger would otherwise break inserts).
+-- Recreate _account_deletion_in_progress / _require_recent_login so replacing
+-- tasks_force_creator does not break inserts if this file is applied alone.
+-- It does NOT recreate force_owner, so account deletion still needs
+-- 20261027210000 first (that trigger must allow user_id to change).
 
 CREATE OR REPLACE FUNCTION public._account_deletion_in_progress()
 RETURNS boolean
