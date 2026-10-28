@@ -5,6 +5,7 @@ import {
   AUTH_UNREACHABLE_ERROR,
   commentSchema,
   friendlyAuthError,
+  GROUP_TASK_EXTRAS_ERROR,
   signInSchema,
   signUpSchema,
   taskPatchSchema,
@@ -68,6 +69,15 @@ describe("taskSchema due dates", () => {
 
   it("allows omitting due_at on a patch", () => {
     expect(taskPatchSchema.safeParse({ status: "done" }).success).toBe(true);
+  });
+
+  it("rejects project, category and tags on a group task", () => {
+    const group = { ...base, group_id: "11111111-1111-4111-8111-111111111111", due_at: null };
+    expect(taskSchema.safeParse(group).success).toBe(true);
+    expect(taskSchema.safeParse({ ...group, project_id: group.group_id }).success).toBe(false);
+    expect(taskSchema.safeParse({ ...group, tag_ids: [group.group_id] }).error?.issues[0]?.message).toBe(
+      GROUP_TASK_EXTRAS_ERROR,
+    );
   });
 });
 

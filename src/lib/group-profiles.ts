@@ -10,7 +10,7 @@ export function profileNameMap(
   return names;
 }
 
-/** id + full_name for the caller and people who share a group with them. */
+/** id + full_name for the caller, current group peers, and people still visible on shared tasks/comments. */
 export async function loadGroupProfileNames(
   ids: Iterable<string | null | undefined>,
 ): Promise<Map<string, string>> {

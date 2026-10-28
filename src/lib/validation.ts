@@ -87,12 +87,38 @@ const taskFields = z.object({
   tag_ids: z.array(z.string().uuid()).max(20),
 });
 
-export const taskSchema = taskFields.superRefine((data, ctx) => dueAtNotPast(data.due_at, ctx));
+export const GROUP_TASK_EXTRAS_ERROR = "Tarefas de grupo não usam projeto, categoria nem tags.";
+
+function groupHasNoPersonalExtras(
+  data: {
+    group_id?: string | null | undefined;
+    project_id?: string | null | undefined;
+    category_id?: string | null | undefined;
+    tag_ids?: string[] | undefined;
+  },
+  ctx: z.RefinementCtx,
+) {
+  if (!data.group_id) return;
+  if (data.project_id) {
+    ctx.addIssue({ code: "custom", path: ["project_id"], message: GROUP_TASK_EXTRAS_ERROR });
+  }
+  if (data.category_id) {
+    ctx.addIssue({ code: "custom", path: ["category_id"], message: GROUP_TASK_EXTRAS_ERROR });
+  }
+  if (data.tag_ids?.length) {
+    ctx.addIssue({ code: "custom", path: ["tag_ids"], message: GROUP_TASK_EXTRAS_ERROR });
+  }
+}
+
+export const taskSchema = taskFields.superRefine((data, ctx) => {
+  dueAtNotPast(data.due_at, ctx);
+  groupHasNoPersonalExtras(data, ctx);
+});
 export type TaskInput = z.infer<typeof taskSchema>;
 
 export const taskPatchSchema = taskFields.partial().superRefine((data, ctx) => {
-  if (data.due_at === undefined) return;
-  dueAtNotPast(data.due_at, ctx);
+  if (data.due_at !== undefined) dueAtNotPast(data.due_at, ctx);
+  groupHasNoPersonalExtras(data, ctx);
 });
 
 export const commentSchema = z.object({

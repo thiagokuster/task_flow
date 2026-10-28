@@ -2,7 +2,14 @@ import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PAST_DUE_ERROR } from "./dates";
 import { loadGroupProfileNames } from "./group-profiles";
-import { taskPatchSchema, taskSchema, type TaskInput, type TaskPriority, type TaskStatus } from "./validation";
+import {
+  GROUP_TASK_EXTRAS_ERROR,
+  taskPatchSchema,
+  taskSchema,
+  type TaskInput,
+  type TaskPriority,
+  type TaskStatus,
+} from "./validation";
 
 // All reads/writes go through the user's session; Row-Level Security in the
 // database is what actually enforces ownership. user_id is never sent from the client.
@@ -34,7 +41,9 @@ function fail(error: { message: string } | null) {
 }
 
 function mapTaskError(message: string): string {
-  if (message.toLowerCase().includes("due date cannot be in the past")) return PAST_DUE_ERROR;
+  const lower = message.toLowerCase();
+  if (lower.includes("due date cannot be in the past")) return PAST_DUE_ERROR;
+  if (lower.includes("group tasks cannot have")) return GROUP_TASK_EXTRAS_ERROR;
   return message;
 }
 
