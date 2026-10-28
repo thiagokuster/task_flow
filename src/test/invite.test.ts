@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { inviteErrorMessage } from "@/lib/groups";
+import { groupPreviewQuery, inviteErrorMessage } from "@/lib/groups";
 
 describe("inviteErrorMessage", () => {
   it("explains expiry, rate limits and invalid codes", () => {
@@ -10,5 +10,14 @@ describe("inviteErrorMessage", () => {
     expect(inviteErrorMessage("rate_limited")).toMatch(/tentativas/i);
     expect(inviteErrorMessage({ message: "invalid invite" })).toMatch(/inválido/i);
     expect(inviteErrorMessage("invalid")).toMatch(/inválido/i);
+  });
+});
+
+describe("groupPreviewQuery", () => {
+  it("does not refetch on focus because each preview spends a rate-limit slot", () => {
+    const options = groupPreviewQuery("ABC");
+    expect(options.staleTime).toBe(Number.POSITIVE_INFINITY);
+    expect(options.refetchOnWindowFocus).toBe(false);
+    expect(options.retry).toBe(false);
   });
 });

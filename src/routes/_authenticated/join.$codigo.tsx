@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { inviteErrorMessage, joinGroup, previewGroup } from "@/lib/groups";
+import { groupPreviewQuery, inviteErrorMessage, joinGroup } from "@/lib/groups";
 
 export const Route = createFileRoute("/_authenticated/join/$codigo")({
   head: () => ({
@@ -21,10 +21,7 @@ function JoinGroupPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const preview = useQuery({
-    queryKey: ["group-preview", codigo],
-    queryFn: () => previewGroup(codigo),
-  });
+  const preview = useQuery(groupPreviewQuery(codigo));
 
   async function join() {
     setBusy(true);

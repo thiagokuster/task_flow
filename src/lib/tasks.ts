@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PAST_DUE_ERROR } from "./dates";
+import { loadGroupProfileNames } from "./group-profiles";
 import { taskPatchSchema, taskSchema, type TaskInput, type TaskPriority, type TaskStatus } from "./validation";
 
 // All reads/writes go through the user's session; Row-Level Security in the
@@ -68,20 +69,18 @@ export const tasksQuery = queryOptions({
     const { data, error } = await supabase
       .from("tasks")
       .select(
-        "id,title,description,priority,status,due_at,completed_at,project_id,category_id,created_at,updated_at,user_id,group_id,assignee_id,created_by,task_tags(tag_id),assignee:profiles!tasks_assignee_id_fkey(full_name)",
+        "id,title,description,priority,status,due_at,completed_at,project_id,category_id,created_at,updated_at,user_id,group_id,assignee_id,created_by,task_tags(tag_id)",
       )
       .order("created_at", { ascending: false })
       .limit(2000);
     fail(error);
+    const names = await loadGroupProfileNames((data ?? []).map((row) => row.assignee_id));
     return (data ?? []).map((row) => {
-      const { task_tags, assignee, ...t } = row as typeof row & {
-        assignee: { full_name: string } | { full_name: string }[] | null;
-      };
-      const profile = Array.isArray(assignee) ? assignee[0] : assignee;
+      const { task_tags, ...t } = row;
       return {
         ...(t as Omit<Task, "tag_ids" | "assignee_name" | "comment_count">),
         tag_ids: (task_tags ?? []).map((x) => x.tag_id),
-        assignee_name: profile?.full_name ?? null,
+        assignee_name: row.assignee_id ? (names.get(row.assignee_id) ?? null) : null,
         comment_count: 0,
       };
     });

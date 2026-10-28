@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { loadGroupProfileNames } from "@/lib/group-profiles";
 
 function fail(error: { message: string } | null) {
   if (error) throw new Error(error.message);
@@ -72,16 +73,7 @@ export const groupMembersQuery = (groupId: string) =>
         .eq("group_id", groupId)
         .order("joined_at");
       fail(error);
-      const ids = (data ?? []).map((row) => row.user_id);
-      const names = new Map<string, string>();
-      if (ids.length) {
-        const profiles = await supabase.from("group_profiles").select("id,full_name").in("id", ids);
-        if (!profiles.error) {
-          for (const profile of profiles.data ?? []) {
-            names.set(profile.id, profile.full_name);
-          }
-        }
-      }
+      const names = await loadGroupProfileNames((data ?? []).map((row) => row.user_id));
       return (data ?? []).map((row) => ({
         user_id: row.user_id,
         role: row.role === "owner" ? "owner" : "member",
@@ -144,6 +136,18 @@ export async function previewGroup(code: string): Promise<GroupPreview | null> {
   if (row.status !== "ok" || !row.id || !row.name) return null;
   return { id: row.id, name: row.name, expired: false };
 }
+
+/** Preview consumes a rate-limit slot — never refetch on focus. */
+export const groupPreviewQuery = (codigo: string) =>
+  queryOptions({
+    queryKey: ["group-preview", codigo],
+    queryFn: () => previewGroup(codigo),
+    staleTime: Infinity,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
+  });
 
 export async function joinGroup(code: string): Promise<string> {
   const { data, error } = await supabase.rpc("join_group", { _code: code.trim() });

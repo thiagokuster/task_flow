@@ -1,6 +1,6 @@
 import "./lib/error-capture";
 
-import { applyScriptNonces, contentSecurityPolicy, createCspNonce } from "./lib/csp";
+import { contentSecurityPolicy, createCspNonce, stampHtmlScriptNonces } from "./lib/csp";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
@@ -66,8 +66,15 @@ async function withSecurityHeaders(response: Response): Promise<Response> {
   }
   const nonce = createCspNonce();
   headers.set("Content-Security-Policy", contentSecurityPolicy(nonce));
-  const html = applyScriptNonces(await response.text(), nonce);
-  return new Response(html, {
+  headers.delete("content-length");
+  const body =
+    response.body ??
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.close();
+      },
+    });
+  return new Response(stampHtmlScriptNonces(body, nonce), {
     status: response.status,
     statusText: response.statusText,
     headers,

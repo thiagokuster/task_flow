@@ -89,6 +89,10 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
     }
     const prepared = await context.supabase.rpc("prepare_account_deletion");
     if (prepared.error) {
+      const message = (prepared.error.message ?? "").toLowerCase();
+      if (message.includes("reauthentication required")) {
+        return { ok: false as const, error: REAUTH_REQUIRED_ERROR, needsReauth: true as const };
+      }
       console.error("account deletion failed");
       return { ok: false as const, error: "Não foi possível excluir a conta agora." };
     }
