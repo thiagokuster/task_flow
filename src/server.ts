@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { contentSecurityPolicy, createCspNonce, stampHtmlScriptNonces } from "./lib/csp";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { applyWorkerEnv } from "./lib/worker-env";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -84,6 +85,7 @@ async function withSecurityHeaders(response: Response): Promise<Response> {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      applyWorkerEnv(env);
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
