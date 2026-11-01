@@ -10,7 +10,7 @@ function requirePublicSupabaseEnv(): import("vite").Plugin {
     config(_, { command, mode }) {
       if (command !== "build") return;
       const env = loadEnv(mode, process.cwd(), "");
-      if (!env.VITE_SUPABASE_URL || !env.VITE_SUPABASE_PUBLISHABLE_KEY) {
+      if (!env["VITE_SUPABASE_URL"] || !env["VITE_SUPABASE_PUBLISHABLE_KEY"]) {
         throw new Error(
           "Defina VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY no Cloudflare (Builds → Variables and secrets) e rode o deploy de novo.",
         );

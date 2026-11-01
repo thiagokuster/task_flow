@@ -4,10 +4,12 @@ import { Logo } from "./brand";
 export function AuthShell({
   title,
   subtitle,
+  google = false,
   children,
 }: {
   title: string;
   subtitle?: string;
+  google?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -22,7 +24,7 @@ export function AuthShell({
           </p>
           <ul className="space-y-3 text-sm text-ink-foreground/75">
             <li>• Seus dados isolados por conta, protegidos no banco.</li>
-            <li>• Entre com e-mail ou Google.</li>
+            <li>{google ? "• Entre com e-mail ou Google." : "• Entre com e-mail e senha."}</li>
             <li>• Exporte ou exclua seus dados quando quiser.</li>
           </ul>
         </div>

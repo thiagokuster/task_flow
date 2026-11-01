@@ -16,6 +16,7 @@ describe("CSP nonce", () => {
     expect(nonce.length).toBeGreaterThan(10);
     expect(createCspNonce()).not.toBe(nonce);
     expect(policy).toContain(`script-src 'nonce-${nonce}' 'strict-dynamic'`);
+    expect(policy).toContain("frame-ancestors 'none'");
     expect(policy).not.toMatch(/script-src[^;]*unsafe-inline/);
   });
 

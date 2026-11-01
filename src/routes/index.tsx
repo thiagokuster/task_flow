@@ -41,7 +41,7 @@ const features = [
   {
     icon: ShieldCheck,
     title: "Privado por padrão",
-    text: "Cada conta só vê os próprios dados. Isolamento no banco, não só na interface.",
+    text: "Tarefas pessoais ficam só com você. Nos grupos, só quem foi convidado vê o que é compartilhado.",
   },
   {
     icon: Download,

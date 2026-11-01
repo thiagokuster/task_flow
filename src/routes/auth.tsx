@@ -282,6 +282,7 @@ function AuthPage() {
             ? "Comece a organizar suas tarefas."
             : "Bem-vindo de volta."
       }
+      google={authStatus?.google === true}
     >
       {reauth ? (
         <p className="mb-6 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">

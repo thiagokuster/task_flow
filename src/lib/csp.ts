@@ -38,6 +38,7 @@ export function contentSecurityPolicy(nonce: string, supabaseUrl?: string): stri
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
+    "frame-ancestors 'none'",
   ].join("; ");
 }
 
