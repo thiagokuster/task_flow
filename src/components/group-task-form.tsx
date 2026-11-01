@@ -34,8 +34,14 @@ export function GroupTaskForm({
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (currentUserId) setAssigneeId((current) => current || currentUserId);
-  }, [currentUserId]);
+    setAssigneeId((current) => {
+      if (current && members.some((member) => member.user_id === current)) return current;
+      if (currentUserId && members.some((member) => member.user_id === currentUserId)) {
+        return currentUserId;
+      }
+      return members[0]?.user_id ?? "";
+    });
+  }, [currentUserId, members]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -112,7 +118,7 @@ export function GroupTaskForm({
       </div>
       <div>
         <Label htmlFor="group-task-assignee">Quem deve fazer</Label>
-        <Select value={assigneeId} onValueChange={setAssigneeId}>
+        <Select value={assigneeId || undefined} onValueChange={setAssigneeId}>
           <SelectTrigger id="group-task-assignee" className="mt-1.5">
             <SelectValue placeholder="Selecione um membro" />
           </SelectTrigger>
