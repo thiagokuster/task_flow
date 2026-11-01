@@ -67,21 +67,21 @@ function Landing() {
 
   return (
     <div className="min-h-screen">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+      <header className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-5 sm:px-6">
         <Logo />
-        <nav className="flex items-center gap-2" aria-label="Conta">
+        <nav className="flex shrink-0 items-center gap-1.5 sm:gap-2" aria-label="Conta">
           {signedIn ? (
             <Button asChild>
               <Link to="/dashboard">Abrir painel</Link>
             </Button>
           ) : (
             <>
-              <Button variant="ghost" asChild>
+              <Button variant="ghost" size="sm" className="sm:h-9 sm:px-4 sm:text-sm" asChild>
                 <Link to="/auth" search={{ mode: "signin" }}>
                   Entrar
                 </Link>
               </Button>
-              <Button asChild>
+              <Button size="sm" className="sm:h-9 sm:px-4 sm:text-sm" asChild>
                 <Link to="/auth" search={{ mode: "signup" }}>
                   Criar conta
                 </Link>
@@ -97,7 +97,7 @@ function Landing() {
             <p className="mb-5 inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
               Produtividade sem bagunça
             </p>
-            <h1 className="text-5xl font-extrabold leading-[1.02] sm:text-6xl">
+            <h1 className="text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
               Suas tarefas,
               <br />
               <span className="text-primary">em fluxo.</span>
