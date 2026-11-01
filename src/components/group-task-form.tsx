@@ -118,7 +118,7 @@ export function GroupTaskForm({
       </div>
       <div>
         <Label htmlFor="group-task-assignee">Quem deve fazer</Label>
-        <Select value={assigneeId || undefined} onValueChange={setAssigneeId}>
+        <Select value={assigneeId} onValueChange={setAssigneeId}>
           <SelectTrigger id="group-task-assignee" className="mt-1.5">
             <SelectValue placeholder="Selecione um membro" />
           </SelectTrigger>
