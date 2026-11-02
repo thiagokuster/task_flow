@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Logo, PublicFooter } from "@/components/brand";
+import { Logo, PublicFooter, SUPPORT_EMAIL } from "@/components/brand";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
@@ -32,7 +32,11 @@ export const Route = createFileRoute("/terms")({
         </p>
         <p>
           Ao excluir a conta, as tarefas pessoais somem. Tarefas de grupo podem permanecer com os
-          colegas, conforme a política de privacidade.
+          colegas, conforme a política de privacidade. Dúvidas:{" "}
+          <a className="underline underline-offset-4" href={`mailto:${SUPPORT_EMAIL}`}>
+            {SUPPORT_EMAIL}
+          </a>
+          .
         </p>
       </main>
       <PublicFooter />

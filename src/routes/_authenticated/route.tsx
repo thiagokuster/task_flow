@@ -59,7 +59,9 @@ const ACCOUNT_LINKS = [
 
 function AccountNav({ pathname, onSignOut }: { pathname: string; onSignOut: () => void }) {
   return (
-    <>
+    <div className="flex items-center gap-1">
+      <NotificationBell />
+      <ThemeToggle />
       <nav className="hidden items-center gap-1 md:flex" aria-label="Área da conta">
         {ACCOUNT_LINKS.map((item) => (
           <Button
@@ -72,47 +74,47 @@ function AccountNav({ pathname, onSignOut }: { pathname: string; onSignOut: () =
             <Link to={item.to}>{item.label}</Link>
           </Button>
         ))}
-        <NotificationBell />
-        <ThemeToggle />
         <Button variant="outline" size="sm" className="rounded-full" onClick={onSignOut}>
           Sair
         </Button>
       </nav>
-      <div className="flex items-center gap-1 md:hidden">
-        <NotificationBell />
-        <ThemeToggle />
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button type="button" variant="outline" size="icon" aria-label="Abrir menu">
-              <Menu />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-72">
-            <SheetHeader>
-              <SheetTitle>Menu</SheetTitle>
-            </SheetHeader>
-            <nav className="mt-6 flex flex-col gap-2" aria-label="Área da conta">
-              {ACCOUNT_LINKS.map((item) => (
-                <SheetClose key={item.to} asChild>
-                  <Button
-                    variant={item.match(pathname) ? "default" : "ghost"}
-                    className="justify-start"
-                    asChild
-                  >
-                    <Link to={item.to}>{item.label}</Link>
-                  </Button>
-                </SheetClose>
-              ))}
-              <SheetClose asChild>
-                <Button variant="outline" className="justify-start" onClick={onSignOut}>
-                  Sair
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="md:hidden"
+            aria-label="Abrir menu"
+          >
+            <Menu />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-72">
+          <SheetHeader>
+            <SheetTitle>Menu</SheetTitle>
+          </SheetHeader>
+          <nav className="mt-6 flex flex-col gap-2" aria-label="Área da conta">
+            {ACCOUNT_LINKS.map((item) => (
+              <SheetClose key={item.to} asChild>
+                <Button
+                  variant={item.match(pathname) ? "default" : "ghost"}
+                  className="justify-start"
+                  asChild
+                >
+                  <Link to={item.to}>{item.label}</Link>
                 </Button>
               </SheetClose>
-            </nav>
-          </SheetContent>
-        </Sheet>
-      </div>
-    </>
+            ))}
+            <SheetClose asChild>
+              <Button variant="outline" className="justify-start" onClick={onSignOut}>
+                Sair
+              </Button>
+            </SheetClose>
+          </nav>
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 }
 

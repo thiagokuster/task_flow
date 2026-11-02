@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Logo, PublicFooter } from "@/components/brand";
+import { Logo, PublicFooter, SUPPORT_EMAIL } from "@/components/brand";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -38,8 +38,13 @@ export const Route = createFileRoute("/privacy")({
           para quem ainda tem acesso à tarefa.
         </p>
         <p>
-          Os dados ficam no projeto Supabase configurado para este aplicativo. Dúvidas: use a
-          página Conta depois de entrar.
+          Os dados ficam no projeto Supabase configurado para este aplicativo. Depois de entrar,
+          use a página Conta para exportar ou excluir seus dados. Se não conseguir acessar a
+          conta, escreva para{" "}
+          <a className="underline underline-offset-4" href={`mailto:${SUPPORT_EMAIL}`}>
+            {SUPPORT_EMAIL}
+          </a>
+          .
         </p>
       </main>
       <PublicFooter />

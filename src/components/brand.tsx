@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
+export const SUPPORT_EMAIL = "thiagokuster027@gmail.com";
+
 export function Logo({ className, inverted }: { className?: string; inverted?: boolean }) {
   return (
     <Link to="/" className={cn("inline-flex items-center gap-2 font-display text-xl font-extrabold tracking-tight", className)} aria-label="TaskFlow, página inicial">
@@ -28,9 +30,12 @@ export function PublicFooter() {
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>© {new Date().getFullYear()} TaskFlow</p>
-        <nav className="flex gap-5" aria-label="Links legais">
+        <nav className="flex flex-wrap gap-5" aria-label="Links legais">
           <Link to="/privacy" className="hover:text-foreground">Privacidade</Link>
           <Link to="/terms" className="hover:text-foreground">Termos de uso</Link>
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-foreground">
+            {SUPPORT_EMAIL}
+          </a>
         </nav>
       </div>
     </footer>
